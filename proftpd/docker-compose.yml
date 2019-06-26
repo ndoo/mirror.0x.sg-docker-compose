@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  rsyncd:
+    image: instantlinux/proftpd
+    restart: unless-stopped
+    ports:
+      - ${MIRROR_IPV4}:21:21
+      - ${MIRROR_IPV6}:21:21
+      - ${MIRROR_IPV4}:65484-65534:65484-65534
+      - ${MIRROR_IPV6}:65484-65534:65484-65534
+    volumes:
+      - pub:/var/lib/ftp
+    env_file: pasv_address.env
+    environment:
+      MAX_CLIENTS: 2000
+      PASV_MIN_PORT: 65484
+      PASV_MAX_PORT: 65534
+
+volumes:
+  pub:
+    driver: n0r1skcom/docker-volume-cephfs:latest
+    driver_opts:
+      path: /pub
+      name: ${CEPHFS_USER}
+      secret: ${CEPHFS_SECRET}
+      monitors: ${CEPHFS_MONS}

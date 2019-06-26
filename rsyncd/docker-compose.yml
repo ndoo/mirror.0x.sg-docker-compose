@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  rsyncd:
+    image: toendeavour/rsyncd-alpine
+    ports:
+      - ${MIRROR_IPV4}:873:873
+      - ${MIRROR_IPV6}:873:873
+    volumes:
+      - conf-rsyncd:/config
+      - pub:/pub
+    restart: unless-stopped
+
+volumes:
+  conf-rsyncd:
+    driver: n0r1skcom/docker-volume-cephfs:latest
+    driver_opts:
+      path: /conf/rsyncd
+      name: ${CEPHFS_USER}
+      secret: ${CEPHFS_SECRET}
+      monitors: ${CEPHFS_MONS}
+  pub:
+    driver: n0r1skcom/docker-volume-cephfs:latest
+    driver_opts:
+      path: /pub
+      name: ${CEPHFS_USER}
+      secret: ${CEPHFS_SECRET}
+      monitors: ${CEPHFS_MONS}

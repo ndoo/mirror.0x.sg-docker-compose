@@ -1,0 +1,56 @@
+version: '3'
+
+# You will probably want this script to initialize LetsEncrypt: https://github.com/wmnnd/nginx-certbot/blob/master/init-letsencrypt.sh
+
+services:
+  nginx:
+    image: nginx:1.17.0-alpine
+    restart: unless-stopped
+    ports:
+      - ${MIRROR_IPV4}:80:80/tcp
+      - ${MIRROR_IPV6}:80:80/tcp
+      - ${MIRROR_IPV4}:443:443/tcp
+      - ${MIRROR_IPV6}:443:443/tcp
+    volumes:
+      - conf-nginx:/etc/nginx/conf.d
+      - conf-certbot:/etc/letsencrypt
+      - www-certbot:/var/www/certbot
+      - pub:/var/www/pub
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - conf-certbot:/etc/letsencrypt
+      - www-certbot:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+volumes:
+  conf-nginx:
+    driver: n0r1skcom/docker-volume-cephfs:latest
+    driver_opts:
+      path: /conf/nginx
+      name: ${CEPHFS_USER}
+      secret: ${CEPHFS_SECRET}
+      monitors: ${CEPHFS_MONS}
+  conf-certbot:
+    driver: n0r1skcom/docker-volume-cephfs:latest
+    driver_opts:
+      path: /conf/certbot
+      name: ${CEPHFS_USER}
+      secret: ${CEPHFS_SECRET}
+      monitors: ${CEPHFS_MONS}
+  www-certbot:
+    driver: n0r1skcom/docker-volume-cephfs:latest
+    driver_opts:
+      path: /www/certbot
+      name: ${CEPHFS_USER}
+      secret: ${CEPHFS_SECRET}
+      monitors: ${CEPHFS_MONS}
+  pub:
+    driver: n0r1skcom/docker-volume-cephfs:latest
+    driver_opts:
+      name: admin
+      path: /pub
+      name: ${CEPHFS_USER}
+      secret: ${CEPHFS_SECRET}
+      monitors: ${CEPHFS_MONS}
