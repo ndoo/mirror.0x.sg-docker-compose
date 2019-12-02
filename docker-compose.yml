@@ -15,6 +15,7 @@ services:
       - conf-certbot:/etc/letsencrypt
       - pub:/pub
       - www:/var/www
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
 
   # You will probably want this script to initialize LetsEncrypt: https://github.com/wmnnd/nginx-certbot/blob/master/init-letsencrypt.sh
   certbot:
@@ -55,37 +56,35 @@ volumes:
   conf-nginx:
     driver: n0r1skcom/docker-volume-cephfs:latest
     driver_opts:
-      path: /conf/nginx
+      path: /mirror/conf/nginx
       name: ${CEPHFS_USER}
       secret: ${CEPHFS_SECRET}
       monitors: ${CEPHFS_MONS}
   conf-certbot:
     driver: n0r1skcom/docker-volume-cephfs:latest
     driver_opts:
-      path: /conf/certbot
+      path: /mirror/conf/certbot
       name: ${CEPHFS_USER}
       secret: ${CEPHFS_SECRET}
       monitors: ${CEPHFS_MONS}
   conf-rsyncd:
     driver: n0r1skcom/docker-volume-cephfs:latest
     driver_opts:
-      path: /conf/rsyncd
+      path: /mirror/conf/rsyncd
       name: ${CEPHFS_USER}
       secret: ${CEPHFS_SECRET}
       monitors: ${CEPHFS_MONS}
   pub:
     driver: n0r1skcom/docker-volume-cephfs:latest
     driver_opts:
-      name: admin
-      path: /pub
+      path: /mirror/pub
       name: ${CEPHFS_USER}
       secret: ${CEPHFS_SECRET}
       monitors: ${CEPHFS_MONS}
   www:
     driver: n0r1skcom/docker-volume-cephfs:latest
     driver_opts:
-      name: admin
-      path: /www
+      path: /mirror/www
       name: ${CEPHFS_USER}
       secret: ${CEPHFS_SECRET}
       monitors: ${CEPHFS_MONS}
